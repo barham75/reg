@@ -1,25 +1,31 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
-export default function BackToGateButton() {
-  const pathname = usePathname();
+export default function BackToPortalButton() {
   const router = useRouter();
+  const pathname = usePathname();
 
-  if (
-    pathname === "/" ||
-    pathname === "/requests-gate" ||
-    pathname === "/student-login"
-  ) {
+  // ❌ لا يظهر في صفحة رئيس القسم
+  if (pathname.includes("/admin") || pathname.includes("/head")) {
     return null;
   }
 
   return (
     <button
-      onClick={() => router.push("/requests-gate")}
-      className="fixed bottom-5 left-5 z-50 bg-black text-white px-5 py-3 rounded-full shadow-lg font-bold"
+      onClick={() => router.push("/student-portal")}
+      style={{
+        marginBottom: 16,
+        padding: "10px 16px",
+        borderRadius: 10,
+        border: "none",
+        background: "#111827",
+        color: "white",
+        fontWeight: "bold",
+        cursor: "pointer",
+      }}
     >
-      العودة لبوابة الطلبات
+      العودة إلى بوابة الطالب
     </button>
   );
 }
