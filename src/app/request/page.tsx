@@ -106,7 +106,9 @@ export default function RequestPage() {
         localStorage.setItem("status", "قيد المراجعة");
 
         alert("تم حفظ الطلب بنجاح");
-        window.location.href = "/status";
+
+        // ✅ التعديل الوحيد هنا
+        window.location.href = "/requests-gate";
       } else {
         alert("لم يتم حفظ الطلب: " + data.error);
       }
