@@ -13,7 +13,7 @@ export default function BackToPortalButton() {
 
   return (
     <button
-      onClick={() => router.push("/student-portal")}
+      onClick={() => router.push("/requests-gate")}
       style={{
         marginBottom: 16,
         padding: "10px 16px",

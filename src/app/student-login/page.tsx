@@ -38,7 +38,7 @@ export default function StudentLoginPage() {
         localStorage.setItem("studentName", data.studentName);
 
         alert(data.message || "تم تسجيل الدخول بنجاح");
-        window.location.href = "/major";
+        window.location.href = "/requests-gate";
       } else {
         alert(data.error || "فشل تسجيل الدخول");
       }
@@ -50,7 +50,7 @@ export default function StudentLoginPage() {
   }
 
   function handleForgotPassword() {
-    alert("يرجى مراجعة رئيس القسم أو دائرة القبول والتسجيل لإعادة تعيين كلمة السر.");
+    alert("يرجى مراجعة رئيس القسم لإعادة تعيين كلمة السر.");
   }
 
   return (

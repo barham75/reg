@@ -8,6 +8,7 @@ type StudentRequest = {
   RequestType: string;
   Reason: string;
   Status: string;
+  Section?: string;
   HeadNote?: string;
 };
 
@@ -109,6 +110,10 @@ export default function MyRequestsPage() {
                 <p><strong>المساق:</strong> {req.Course}</p>
                 <p><strong>نوع الطلب:</strong> {req.RequestType}</p>
                 <p><strong>السبب:</strong> {req.Reason}</p>
+                <p>
+                  <strong>رقم الشعبة:</strong>{" "}
+                  {req.Section ? req.Section : "غير محدد"}
+                </p>
 
                 <p className="mt-2">
                   <strong>الحالة:</strong>{" "}

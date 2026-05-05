@@ -135,7 +135,7 @@ export default function AdminPage() {
             </p>
 
             {/* أزرار القرار */}
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               <button
                 onClick={() =>
                   updateDecision(req.ID, "مقبول", "تمت الموافقة", "")
@@ -152,6 +152,20 @@ export default function AdminPage() {
                 className="bg-red-600 text-white px-4 py-2 rounded-lg"
               >
                 رفض
+              </button>
+
+              <button
+                onClick={() =>
+                  updateDecision(
+                    req.ID,
+                    "مراجعة رئيس القسم",
+                    "مراجعة رئيس القسم",
+                    ""
+                  )
+                }
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+              >
+                مراجعة رئيس القسم
               </button>
             </div>
           </div>
