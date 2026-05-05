@@ -28,9 +28,16 @@ export default function Home() {
 
         <button
           onClick={() => router.push("/admin")}
-          className="w-full bg-green-700 text-white py-3 rounded-lg font-bold"
+          className="w-full bg-green-700 text-white py-3 rounded-lg font-bold mb-3"
         >
           صفحة رئيس القسم
+        </button>
+
+        <button
+          onClick={() => router.push("/advisor")}
+          className="w-full bg-gray-700 text-white py-3 rounded-lg font-bold"
+        >
+          صفحة المرشد الأكاديمي
         </button>
       </div>
     </main>

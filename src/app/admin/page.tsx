@@ -14,15 +14,39 @@ type Request = {
   Status: string;
   HeadDecision?: string;
   HeadNote?: string;
+  AdvisorDecision?: string;
+  AdvisorNote?: string;
+  AdvisorID?: string;
+  AdvisorName?: string;
 
   // 🔥 إضافاتنا
   Section?: string;
   StudentNote?: string;
 };
 
+type Advisor = {
+  ID?: string;
+  id?: string;
+  AdvisorID?: string;
+  Name?: string;
+  AdvisorName?: string;
+  Major?: string;
+  Specialization?: string;
+  الاسم?: string;
+  التخصص?: string;
+};
+
+type AdvisorOption = {
+  id: string;
+  name: string;
+};
+
 export default function AdminPage() {
   const [requests, setRequests] = useState<Request[]>([]);
+  const [advisorsByMajor, setAdvisorsByMajor] = useState<Record<string, AdvisorOption[]>>({});
+  const [advisorLoadError, setAdvisorLoadError] = useState("");
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [advisorSelections, setAdvisorSelections] = useState<Record<string, string>>({});
   const [password, setPassword] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -48,6 +72,50 @@ export default function AdminPage() {
     }
   }
 
+  async function fetchAdvisors() {
+    try {
+      const res = await fetch("/api/advisors", {
+        method: "POST",
+        cache: "no-store",
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        setAdvisorLoadError(data.error || "فشل تحميل المرشدين الأكاديميين");
+        return;
+      }
+
+      const grouped: Record<string, AdvisorOption[]> = {};
+
+      (data.advisors || []).forEach((advisor: Advisor | string) => {
+        const id =
+          typeof advisor === "string"
+            ? advisor
+            : advisor.ID || advisor.id || advisor.AdvisorID || advisor.Name || "";
+        const name =
+          typeof advisor === "string"
+            ? advisor
+            : advisor.Name || advisor.AdvisorName || advisor.الاسم || "";
+        const major =
+          typeof advisor === "string"
+            ? "تخصص آخر"
+            : advisor.Major || advisor.Specialization || advisor.التخصص || "";
+
+        if (!name || !major) return;
+
+        if (!(grouped[major] || []).some((item) => item.id === id)) {
+          grouped[major] = [...(grouped[major] || []), { id, name }];
+        }
+      });
+
+      setAdvisorsByMajor(grouped);
+      setAdvisorLoadError("");
+    } catch {
+      setAdvisorLoadError("فشل تحميل المرشدين الأكاديميين");
+    }
+  }
+
   useEffect(() => {
     if (!isAuthorized) {
       setLoading(false);
@@ -55,6 +123,7 @@ export default function AdminPage() {
     }
 
     fetchRequests();
+    fetchAdvisors();
   }, [isAuthorized]);
 
   function handleAdminLogin(e: React.FormEvent) {
@@ -74,7 +143,10 @@ export default function AdminPage() {
     id: string,
     status: string,
     decision: string,
-    note: string
+    note: string,
+    advisorNote = "",
+    advisorName = "",
+    advisorId = ""
   ) {
     try {
       const res = await fetch("/api/admin", {
@@ -87,6 +159,9 @@ export default function AdminPage() {
           status,
           headDecision: decision,
           headNote: note,
+          advisorNote,
+          advisorName,
+          advisorId,
         }),
       });
 
@@ -164,6 +239,9 @@ export default function AdminPage() {
                 ? "border-green-500"
                 : req.Status === "مرفوض"
                 ? "border-red-500"
+                : req.Status === "محول للمرشد الأكاديمي" ||
+                  req.Status === "تم إبداء رأي المرشد الأكاديمي"
+                ? "border-blue-500"
                 : "border-gray-300"
             }`}
           >
@@ -192,6 +270,34 @@ export default function AdminPage() {
               <strong>الحالة:</strong> {req.Status}
             </p>
 
+            {req.AdvisorName && (
+              <>
+                <p>
+                  <strong>المرشد الأكاديمي:</strong> {req.AdvisorName}
+                </p>
+                {req.AdvisorID && (
+                  <p>
+                    <strong>رقم المرشد:</strong> {req.AdvisorID}
+                  </p>
+                )}
+              </>
+            )}
+
+            {(req.AdvisorNote ||
+              (req.Status === "تم إبداء رأي المرشد الأكاديمي"
+                ? req.HeadNote
+                : "")) && (
+              <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <strong>رأي المرشد الأكاديمي:</strong>
+                <p>
+                  {req.AdvisorNote ||
+                    (req.Status === "تم إبداء رأي المرشد الأكاديمي"
+                      ? req.HeadNote
+                      : "")}
+                </p>
+              </div>
+            )}
+
             <label className="block mt-4 mb-2 font-semibold">
               رأي رئيس القسم عند الحاجة
             </label>
@@ -207,6 +313,42 @@ export default function AdminPage() {
               rows={3}
               placeholder="اكتب رأيك أو ملاحظتك هنا..."
             />
+
+            <label className="block mt-4 mb-2 font-semibold">
+              اختيار المرشد الأكاديمي
+            </label>
+            <select
+              value={advisorSelections[req.ID] ?? req.AdvisorID ?? ""}
+              onChange={(e) =>
+                setAdvisorSelections((current) => ({
+                  ...current,
+                  [req.ID]: e.target.value,
+                }))
+              }
+              className="w-full border rounded-lg p-3 bg-white"
+            >
+              <option value="">اختر المرشد الأكاديمي</option>
+              {advisorLoadError ? (
+                <option value="" disabled>
+                  يجب تفعيل قراءة المرشدين من الشيت
+                </option>
+              ) : (advisorsByMajor[req.Major] || []).length === 0 ? (
+                <option value="" disabled>
+                  لا يوجد مرشدون لهذا التخصص في الشيت
+                </option>
+              ) : (
+                advisorsByMajor[req.Major].map((advisor) => (
+                  <option key={`${req.ID}-${advisor.id}`} value={advisor.id}>
+                    {advisor.name}
+                  </option>
+                ))
+              )}
+            </select>
+            {advisorLoadError && (
+              <p className="mt-2 text-sm text-red-600">
+                {advisorLoadError}
+              </p>
+            )}
 
             {/* أزرار القرار */}
             <div className="mt-4 flex flex-wrap gap-2">
@@ -250,6 +392,34 @@ export default function AdminPage() {
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg"
               >
                 مراجعة رئيس القسم
+              </button>
+
+              <button
+                onClick={() => {
+                  const advisorId =
+                    advisorSelections[req.ID] ?? req.AdvisorID ?? "";
+                  const advisor = (advisorsByMajor[req.Major] || []).find(
+                    (item) => item.id === advisorId
+                  );
+
+                  if (!advisor) {
+                    alert("يرجى اختيار المرشد الأكاديمي أولاً");
+                    return;
+                  }
+
+                  updateDecision(
+                    req.ID,
+                    "محول للمرشد الأكاديمي",
+                    "تحويل للمرشد الأكاديمي",
+                    notes[req.ID] ?? req.HeadNote ?? "",
+                    req.AdvisorNote ?? "",
+                    advisor.name,
+                    advisor.id
+                  );
+                }}
+                className="bg-gray-700 text-white px-4 py-2 rounded-lg"
+              >
+                تحويل للمرشد الأكاديمي
               </button>
             </div>
           </div>

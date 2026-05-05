@@ -7,7 +7,11 @@ export default function BackToPortalButton() {
   const pathname = usePathname();
 
   // ❌ لا يظهر في صفحة رئيس القسم
-  if (pathname.includes("/admin") || pathname.includes("/head")) {
+  if (
+    pathname.includes("/admin") ||
+    pathname.includes("/head") ||
+    pathname.includes("/advisor")
+  ) {
     return null;
   }
 
