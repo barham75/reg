@@ -23,6 +23,8 @@ type Request = {
 export default function AdminPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [password, setPassword] = useState("");
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // 🔄 جلب الطلبات
@@ -47,8 +49,25 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
+    if (!isAuthorized) {
+      setLoading(false);
+      return;
+    }
+
     fetchRequests();
-  }, []);
+  }, [isAuthorized]);
+
+  function handleAdminLogin(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (password !== "123456") {
+      alert("كلمة السر غير صحيحة");
+      return;
+    }
+
+    setLoading(true);
+    setIsAuthorized(true);
+  }
 
   // 🔄 تحديث القرار
   async function updateDecision(
@@ -89,6 +108,44 @@ export default function AdminPage() {
       <div className="text-center mt-10 text-lg">
         جاري تحميل الطلبات...
       </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <main
+        className="min-h-screen bg-gray-100 flex items-center justify-center p-4"
+        dir="rtl"
+      >
+        <form
+          onSubmit={handleAdminLogin}
+          className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6"
+        >
+          <h1 className="text-2xl font-bold text-center mb-3">
+            دخول رئيس القسم
+          </h1>
+
+          <p className="text-center text-gray-600 mb-6">
+            يرجى إدخال كلمة السر للمتابعة
+          </p>
+
+          <label className="block mb-2 font-semibold">كلمة السر</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border rounded-lg p-3 mb-4"
+            placeholder="أدخل كلمة السر"
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-green-700 text-white py-3 rounded-lg font-bold"
+          >
+            دخول
+          </button>
+        </form>
+      </main>
     );
   }
 
