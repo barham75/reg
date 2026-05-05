@@ -16,6 +16,11 @@ export default function StudentLoginPage() {
       return;
     }
 
+    if (!/^\d{6}$/.test(studentId)) {
+      alert("يجب أن يتكون رقم الطالب من 6 خانات");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -74,7 +79,11 @@ export default function StudentLoginPage() {
         <input
           type="text"
           value={studentId}
-          onChange={(e) => setStudentId(e.target.value)}
+          onChange={(e) =>
+            setStudentId(e.target.value.replace(/\D/g, "").slice(0, 6))
+          }
+          inputMode="numeric"
+          maxLength={6}
           className="w-full border rounded-lg p-3 mb-4"
           placeholder="أدخل رقم الطالب"
         />

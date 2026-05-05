@@ -22,6 +22,7 @@ type Request = {
 
 export default function AdminPage() {
   const [requests, setRequests] = useState<Request[]>([]);
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   // 🔄 جلب الطلبات
@@ -134,11 +135,32 @@ export default function AdminPage() {
               <strong>الحالة:</strong> {req.Status}
             </p>
 
+            <label className="block mt-4 mb-2 font-semibold">
+              رأي رئيس القسم عند الحاجة
+            </label>
+            <textarea
+              value={notes[req.ID] ?? req.HeadNote ?? ""}
+              onChange={(e) =>
+                setNotes((current) => ({
+                  ...current,
+                  [req.ID]: e.target.value,
+                }))
+              }
+              className="w-full border rounded-lg p-3"
+              rows={3}
+              placeholder="اكتب رأيك أو ملاحظتك هنا..."
+            />
+
             {/* أزرار القرار */}
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 onClick={() =>
-                  updateDecision(req.ID, "مقبول", "تمت الموافقة", "")
+                  updateDecision(
+                    req.ID,
+                    "مقبول",
+                    "تمت الموافقة",
+                    notes[req.ID] ?? req.HeadNote ?? ""
+                  )
                 }
                 className="bg-green-600 text-white px-4 py-2 rounded-lg"
               >
@@ -147,7 +169,12 @@ export default function AdminPage() {
 
               <button
                 onClick={() =>
-                  updateDecision(req.ID, "مرفوض", "تم الرفض", "")
+                  updateDecision(
+                    req.ID,
+                    "مرفوض",
+                    "تم الرفض",
+                    notes[req.ID] ?? req.HeadNote ?? ""
+                  )
                 }
                 className="bg-red-600 text-white px-4 py-2 rounded-lg"
               >
@@ -160,7 +187,7 @@ export default function AdminPage() {
                     req.ID,
                     "مراجعة رئيس القسم",
                     "مراجعة رئيس القسم",
-                    ""
+                    notes[req.ID] ?? req.HeadNote ?? ""
                   )
                 }
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg"
