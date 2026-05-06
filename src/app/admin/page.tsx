@@ -9,6 +9,8 @@ type Request = {
   StudentName: string;
   Major: string;
   Course: string;
+  CourseID?: string;
+  IDcourse?: string;
   RequestType: string;
   Reason: string;
   Status: string;
@@ -249,6 +251,10 @@ export default function AdminPage() {
             <p><strong>الاسم:</strong> {req.StudentName}</p>
             <p><strong>التخصص:</strong> {req.Major}</p>
             <p><strong>المساق:</strong> {req.Course}</p>
+            <p>
+              <strong>رقم المساق:</strong>{" "}
+              {req.CourseID || req.IDcourse || "غير محدد"}
+            </p>
             <p><strong>نوع الطلب:</strong> {req.RequestType}</p>
             <p><strong>السبب:</strong> {req.Reason}</p>
 

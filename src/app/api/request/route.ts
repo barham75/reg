@@ -27,6 +27,7 @@ export async function POST(req: Request) {
         studentName: body.studentName,
         major: body.major,
         course: body.course,
+        courseId: body.courseId || "",
         requestType: body.requestType,
         reason: body.reason,
         section: body.section || "",

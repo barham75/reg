@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 
+type CourseOption = {
+  name: string;
+  id: string;
+};
+
 export default function RequestPage() {
   const [course, setCourse] = useState("");
   const [requestType, setRequestType] = useState("");
@@ -9,7 +14,7 @@ export default function RequestPage() {
   const [section, setSection] = useState("");
   const [note, setNote] = useState("");
 
-  const [courses, setCourses] = useState<string[]>([]);
+  const [courses, setCourses] = useState<CourseOption[]>([]);
   const [requestTypes, setRequestTypes] = useState<string[]>([]);
   const [reasons, setReasons] = useState<string[]>([]);
 
@@ -38,7 +43,17 @@ export default function RequestPage() {
       const data = await res.json();
 
       if (data.ok) {
-        setCourses([...new Set<string>(data.options.courses || [])]);
+        const courseOptions = (data.options.courses || []).map(
+          (item: string | CourseOption) =>
+            typeof item === "string" ? { name: item, id: "" } : item
+        );
+
+        setCourses(
+          courseOptions.filter(
+            (item: CourseOption, index: number, arr: CourseOption[]) =>
+              arr.findIndex((courseItem) => courseItem.name === item.name) === index
+          )
+        );
         setRequestTypes([...new Set<string>(data.options.requestTypes || [])]);
         setReasons([...new Set<string>(data.options.reasons || [])]);
       } else {
@@ -75,6 +90,7 @@ export default function RequestPage() {
 
     try {
       setLoading(true);
+      const selectedCourse = courses.find((item) => item.name === course);
 
       const res = await fetch("/api/request", {
         method: "POST",
@@ -87,6 +103,7 @@ export default function RequestPage() {
           studentName,
           major,
           course,
+          courseId: selectedCourse?.id || "",
           requestType,
           reason,
           section,
@@ -99,6 +116,7 @@ export default function RequestPage() {
       if (data.ok) {
         localStorage.setItem("requestId", data.id);
         localStorage.setItem("course", course);
+        localStorage.setItem("courseId", selectedCourse?.id || "");
         localStorage.setItem("requestType", requestType);
         localStorage.setItem("reason", reason);
         localStorage.setItem("section", section);
@@ -144,8 +162,8 @@ export default function RequestPage() {
             >
               <option value="">اختر المساق</option>
               {courses.map((c, i) => (
-                <option key={`course-${i}-${c}`} value={c}>
-                  {c}
+                <option key={`course-${i}-${c.name}`} value={c.name}>
+                  {c.name}
                 </option>
               ))}
             </select>
