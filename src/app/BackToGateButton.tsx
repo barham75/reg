@@ -9,6 +9,7 @@ export default function BackToPortalButton() {
   // ❌ لا يظهر في صفحة رئيس القسم
   if (
     pathname === "/" ||
+    pathname.includes("/student-login") ||
     pathname.includes("/admin") ||
     pathname.includes("/head") ||
     pathname.includes("/advisor")
