@@ -28,6 +28,16 @@ export default function RequestsGatePage() {
           >
             تقديم طلب جديد
           </button>
+
+          <button
+            onClick={() => {
+              localStorage.clear();
+              router.push("/");
+            }}
+            className="w-full bg-gray-700 text-white py-4 rounded-lg font-bold text-lg"
+          >
+            تسجيل خروج
+          </button>
         </div>
       </div>
     </main>

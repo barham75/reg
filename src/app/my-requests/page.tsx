@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 type StudentRequest = {
   ID: string;
+  Date: string;
   Course: string;
   RequestType: string;
   Reason: string;
@@ -11,6 +12,29 @@ type StudentRequest = {
   Section?: string;
   HeadNote?: string;
 };
+
+function formatDate(value: string) {
+  if (!value) return "غير محدد";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString("ar-JO");
+}
+
+function statusClass(status: string) {
+  if (status === "مقبول") return "bg-green-100 text-green-700";
+  if (status === "مرفوض") return "bg-red-100 text-red-700";
+  if (
+    status === "محول للمرشد الأكاديمي" ||
+    status === "تم إبداء رأي المرشد الأكاديمي"
+  ) {
+    return "bg-blue-100 text-blue-700";
+  }
+
+  return "bg-gray-100 text-gray-700";
+}
 
 export default function MyRequestsPage() {
   const [requests, setRequests] = useState<StudentRequest[]>([]);
@@ -93,6 +117,16 @@ export default function MyRequestsPage() {
           <p className="text-center text-gray-600">
             مرحباً {studentName}
           </p>
+
+          <button
+            onClick={() => {
+              localStorage.clear();
+              window.location.href = "/";
+            }}
+            className="w-full bg-gray-700 text-white py-3 rounded-lg font-bold mt-4"
+          >
+            تسجيل خروج
+          </button>
         </div>
 
         {loading ? (
@@ -107,6 +141,7 @@ export default function MyRequestsPage() {
           <div className="space-y-4">
             {requests.map((req) => (
               <div key={req.ID} className="bg-white rounded-2xl shadow p-4">
+                <p><strong>تاريخ الطلب:</strong> {formatDate(req.Date)}</p>
                 <p><strong>المساق:</strong> {req.Course}</p>
                 <p><strong>نوع الطلب:</strong> {req.RequestType}</p>
                 <p><strong>السبب:</strong> {req.Reason}</p>
@@ -117,7 +152,7 @@ export default function MyRequestsPage() {
 
                 <p className="mt-2">
                   <strong>الحالة:</strong>{" "}
-                  <span className="text-blue-700 font-bold">
+                  <span className={`inline-block rounded-lg px-3 py-1 font-bold ${statusClass(req.Status)}`}>
                     {req.Status || "قيد المراجعة"}
                   </span>
                 </p>

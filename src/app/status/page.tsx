@@ -4,12 +4,36 @@ import { useEffect, useState } from "react";
 
 export default function StatusPage() {
   const [studentName, setStudentName] = useState("");
+  const [date, setDate] = useState("");
   const [course, setCourse] = useState("");
   const [requestType, setRequestType] = useState("");
   const [reason, setReason] = useState("");
   const [status, setStatus] = useState("قيد المراجعة");
   const [headNote, setHeadNote] = useState("");
   const [notified, setNotified] = useState(false);
+
+  function formatDate(value: string) {
+    if (!value) return "غير محدد";
+
+    const requestDate = new Date(value);
+
+    if (Number.isNaN(requestDate.getTime())) return value;
+
+    return requestDate.toLocaleDateString("ar-JO");
+  }
+
+  function statusClass(value: string) {
+    if (value === "مقبول") return "bg-green-100 text-green-700";
+    if (value === "مرفوض") return "bg-red-100 text-red-700";
+    if (
+      value === "محول للمرشد الأكاديمي" ||
+      value === "تم إبداء رأي المرشد الأكاديمي"
+    ) {
+      return "bg-blue-100 text-blue-700";
+    }
+
+    return "bg-gray-100 text-gray-700";
+  }
 
   async function fetchStatus() {
     const requestId = localStorage.getItem("requestId");
@@ -29,6 +53,7 @@ export default function StatusPage() {
     if (data.ok) {
       const req = data.request;
 
+      setDate(req.Date || "");
       setCourse(req.Course || "");
       setRequestType(req.RequestType || "");
       setReason(req.Reason || "");
@@ -73,6 +98,11 @@ export default function StatusPage() {
         </p>
 
         <div className="mb-4">
+          <strong>تاريخ الطلب:</strong>
+          <p>{formatDate(date)}</p>
+        </div>
+
+        <div className="mb-4">
           <strong>المساق:</strong>
           <p>{course}</p>
         </div>
@@ -89,7 +119,9 @@ export default function StatusPage() {
 
         <div className="mb-4">
           <strong>حالة الطلب:</strong>
-          <p className="text-blue-700 font-bold text-lg">{status}</p>
+          <p className={`inline-block rounded-lg px-3 py-1 font-bold ${statusClass(status)}`}>
+            {status}
+          </p>
         </div>
 
         {headNote && (
@@ -113,7 +145,7 @@ export default function StatusPage() {
           }}
           className="w-full bg-gray-700 text-white py-3 rounded-lg"
         >
-          طلب جديد
+          تسجيل خروج
         </button>
       </div>
     </main>

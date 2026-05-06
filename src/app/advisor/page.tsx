@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 type AdvisorRequest = {
   ID: string;
+  Date: string;
   StudentID: string;
   StudentName: string;
   Major: string;
@@ -19,6 +20,29 @@ type AdvisorRequest = {
   AdvisorID?: string;
   AdvisorName?: string;
 };
+
+function formatDate(value: string) {
+  if (!value) return "غير محدد";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString("ar-JO");
+}
+
+function statusClass(status: string) {
+  if (status === "مقبول") return "bg-green-100 text-green-700";
+  if (status === "مرفوض") return "bg-red-100 text-red-700";
+  if (
+    status === "محول للمرشد الأكاديمي" ||
+    status === "تم إبداء رأي المرشد الأكاديمي"
+  ) {
+    return "bg-blue-100 text-blue-700";
+  }
+
+  return "bg-gray-100 text-gray-700";
+}
 
 export default function AdvisorPage() {
   const [requests, setRequests] = useState<AdvisorRequest[]>([]);
@@ -145,6 +169,19 @@ export default function AdvisorPage() {
     }
   }
 
+  function handleLogout() {
+    setRequests([]);
+    setOpinions({});
+    setDecisions({});
+    setAdvisorId("");
+    setAdvisorName("");
+    setPassword("");
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setIsAuthorized(false);
+  }
+
   async function changePassword(e: React.FormEvent) {
     e.preventDefault();
 
@@ -253,6 +290,13 @@ export default function AdvisorPage() {
         مرحباً {advisorName || advisorId}
       </p>
 
+      <button
+        onClick={handleLogout}
+        className="block w-full max-w-md mx-auto bg-gray-700 text-white py-3 rounded-lg font-bold mb-4"
+      >
+        تسجيل خروج
+      </button>
+
       <form
         onSubmit={changePassword}
         className="max-w-md mx-auto bg-white rounded-xl shadow p-4 mb-4"
@@ -299,6 +343,7 @@ export default function AdvisorPage() {
         <div className="grid gap-4">
           {requests.map((req) => (
             <div key={req.ID} className="bg-white p-4 rounded-xl shadow">
+              <p><strong>تاريخ الطلب:</strong> {formatDate(req.Date)}</p>
               <p><strong>رقم الطالب:</strong> {req.StudentID}</p>
               <p><strong>الاسم:</strong> {req.StudentName}</p>
               <p><strong>التخصص:</strong> {req.Major}</p>
@@ -314,7 +359,10 @@ export default function AdvisorPage() {
                 {req.Section ? req.Section : "غير محدد"}
               </p>
               <p className="mt-2">
-                <strong>الحالة:</strong> {req.Status}
+                <strong>الحالة:</strong>{" "}
+                <span className={`inline-block rounded-lg px-3 py-1 font-bold ${statusClass(req.Status)}`}>
+                  {req.Status || "قيد المراجعة"}
+                </span>
               </p>
               <p>
                 <strong>المرشد الأكاديمي:</strong>{" "}

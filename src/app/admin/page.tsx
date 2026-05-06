@@ -43,12 +43,38 @@ type AdvisorOption = {
   name: string;
 };
 
+function formatDate(value: string) {
+  if (!value) return "غير محدد";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString("ar-JO");
+}
+
+function statusClass(status: string) {
+  if (status === "مقبول") return "bg-green-100 text-green-700";
+  if (status === "مرفوض") return "bg-red-100 text-red-700";
+  if (
+    status === "محول للمرشد الأكاديمي" ||
+    status === "تم إبداء رأي المرشد الأكاديمي"
+  ) {
+    return "bg-blue-100 text-blue-700";
+  }
+
+  return "bg-gray-100 text-gray-700";
+}
+
 export default function AdminPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [advisorsByMajor, setAdvisorsByMajor] = useState<Record<string, AdvisorOption[]>>({});
   const [advisorLoadError, setAdvisorLoadError] = useState("");
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [advisorSelections, setAdvisorSelections] = useState<Record<string, string>>({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [majorFilter, setMajorFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [password, setPassword] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -140,6 +166,12 @@ export default function AdminPage() {
     setIsAuthorized(true);
   }
 
+  function handleLogout() {
+    setPassword("");
+    setRequests([]);
+    setIsAuthorized(false);
+  }
+
   // 🔄 تحديث القرار
   async function updateDecision(
     id: string,
@@ -179,6 +211,25 @@ export default function AdminPage() {
       alert("حدث خطأ أثناء التحديث");
     }
   }
+
+  const majors = Array.from(
+    new Set(requests.map((req) => req.Major).filter(Boolean))
+  );
+  const statuses = Array.from(
+    new Set(requests.map((req) => req.Status || "قيد المراجعة"))
+  );
+  const filteredRequests = requests.filter((req) => {
+    const search = searchTerm.trim().toLowerCase();
+    const matchesSearch =
+      !search ||
+      String(req.StudentID || "").toLowerCase().includes(search) ||
+      String(req.StudentName || "").toLowerCase().includes(search);
+    const matchesMajor = !majorFilter || req.Major === majorFilter;
+    const matchesStatus =
+      !statusFilter || (req.Status || "قيد المراجعة") === statusFilter;
+
+    return matchesSearch && matchesMajor && matchesStatus;
+  });
 
   if (loading) {
     return (
@@ -232,8 +283,59 @@ export default function AdminPage() {
         لوحة رئيس القسم
       </h1>
 
+      <div className="bg-white rounded-xl shadow p-4 mb-4 grid gap-3">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full border rounded-lg p-3"
+          placeholder="بحث باسم الطالب أو رقم الطالب"
+        />
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <select
+            value={majorFilter}
+            onChange={(e) => setMajorFilter(e.target.value)}
+            className="w-full border rounded-lg p-3 bg-white"
+          >
+            <option value="">كل التخصصات</option>
+            {majors.map((major) => (
+              <option key={major} value={major}>
+                {major}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full border rounded-lg p-3 bg-white"
+          >
+            <option value="">كل الحالات</option>
+            {statuses.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={handleLogout}
+            className="w-full bg-gray-700 text-white py-3 rounded-lg font-bold"
+          >
+            تسجيل خروج
+          </button>
+        </div>
+      </div>
+
       <div className="grid gap-4">
-        {requests.map((req) => (
+        {filteredRequests.length === 0 && (
+          <div className="bg-white rounded-xl p-4 text-center shadow">
+            لا توجد طلبات مطابقة
+          </div>
+        )}
+
+        {filteredRequests.map((req) => (
           <div
             key={req.ID}
             className={`bg-white p-4 rounded-xl shadow border-2 ${
@@ -247,6 +349,7 @@ export default function AdminPage() {
                 : "border-gray-300"
             }`}
           >
+            <p><strong>تاريخ الطلب:</strong> {formatDate(req.Date)}</p>
             <p><strong>رقم الطالب:</strong> {req.StudentID}</p>
             <p><strong>الاسم:</strong> {req.StudentName}</p>
             <p><strong>التخصص:</strong> {req.Major}</p>
@@ -273,7 +376,10 @@ export default function AdminPage() {
             )}
 
             <p className="mt-2">
-              <strong>الحالة:</strong> {req.Status}
+              <strong>الحالة:</strong>{" "}
+              <span className={`inline-block rounded-lg px-3 py-1 font-bold ${statusClass(req.Status)}`}>
+                {req.Status || "قيد المراجعة"}
+              </span>
             </p>
 
             {req.AdvisorName && (
